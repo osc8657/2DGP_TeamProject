@@ -34,6 +34,10 @@ class Run:
 class Swing:
     pass
 
+# 점프 스매시 클래스
+class Jump_smash:
+    pass
+
 # idle 클래스
 class Idle:
     pass
