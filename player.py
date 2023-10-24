@@ -28,6 +28,31 @@ def space_up(e):
 
 # 이동 클래스
 class Run:
+    @staticmethod
+    def enter(player, e):
+        if right_down(e) or left_up(e):
+            #오른쪽 이동
+            pass
+        elif left_down(e) or right_up(e):
+            # 왼쪽 이동
+            pass
+
+    @staticmethod
+    def exit(player, e):
+        pass
+
+    @staticmethod
+    def do(player):
+        # 이동에 따른 프레임 추가
+        # player.frame = (boy.frame + 1) % 8 (애니메이션 프레임)
+        # player.x += player.dir * 5 (dir : 플레이어가 향하는 방향 1,-1)
+        pass
+
+    @staticmethod
+    def draw(player):
+        #player.image.clip_draw()
+        pass
+
     pass
 
 # 스윙 클래스
