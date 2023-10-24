@@ -13,3 +13,7 @@ def update():
     for o in objects:
         objects.update()
 
+# 월드 객체들을 모두 그리는 함수
+def render():
+    for o in objects:
+        objects.draw()
