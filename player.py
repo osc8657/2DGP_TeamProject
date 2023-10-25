@@ -14,16 +14,28 @@ def left_down(e):
 def left_up(e):
     pass
 
-#위쪽 키 이벤트
-def up_down(e):
-    pass
-def up_up(e):
+# 점프 이벤트
+def alt_down(e):
     pass
 
-# 스페이스 키 이벤트
-def space_down(e):
+# 스윙 이벤트
+def ctrl_down(e):
     pass
-def space_up(e):
+
+# 점프 중 이벤트 발생 없을 시
+def jump_over(e):
+    pass
+
+# 착지 모션 끝
+def L_motion_over(e):
+    pass
+
+# 스윙 모션 끝
+def S_motion_over(e):
+    pass
+
+# 점프 스매시 모션 끝
+def JS_motion_over(e):
     pass
 
 # 대기 클래스
@@ -77,17 +89,48 @@ class Run:
 class Swing:
     pass
 
+# 점프 클래스
+class Jump:
+    pass
+
+# 착지 클래스
+class Landing:
+    pass
+
 # 점프 스매시 클래스
 class Jump_smash:
     pass
 
-# idle 클래스
-class Idle:
-    pass
-
 # 상태변환 클래스
 class StateMachine:
-    pass
+
+    def __init__(self, player):
+        self.player = player
+        self.cur_state = Wait
+        self.transition = {
+            Wait : {right_down: Run, left_down: Run, right_up: Run, left_up: Run, alt_down: Jump, ctrl_down: Swing},
+            Run : {right_down: Wait, right_up: Wait, left_down: Wait, left_up: Wait, alt_down: Jump, ctrl_down: Swing},
+            Jump : {ctrl_down: Jump_smash, jump_over: Landing},
+            Landing : {L_motion_over: Wait},
+            Swing : {S_motion_over: Wait},
+            Jump_smash : {JS_motion_over: Landing}
+        }
+
+    def start(self):
+        self.cur_state.enter(self.player, ('NONE', 0))
+
+    def update(self):
+        self.cur_state.do(self.player)
+
+    def handle_event(self, e):
+        for check_event, next_state in self.transition[self.cur_state].items():
+            if check_event(e):
+                self.cur_state.exit(self.player, e)
+                self.cur_state = next_state
+                self.cur_state.enter(self.player, e)
+                return True
+
+        return False
 
 # 플레이어 클래스
 class Player:
