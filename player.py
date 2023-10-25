@@ -132,6 +132,28 @@ class StateMachine:
 
         return False
 
+    def draw(self):
+        self.cur_state.draw(self.player)
+
 # 플레이어 클래스
 class Player:
+
+    def __init__(self):
+        self.x, self.y = 50, 50 # 대충 임의의 값 넣음 수정필요
+        self.frame = 0
+        self.action = 0 # 임의의 값, 대기 액션으로 값 넣어야댐
+        self.dir = 0 # 플레이어 진행 방향
+        self.image = load_image('animation_sheet.png')
+        self.state_machine = StateMachine(self)
+        self.state_machine.start()
+
+    def update(self):
+        self.state_machine.update()
+
+    def handle_event(self, event):
+        self.state_machine.handle_event(('INPUT', event))
+
+    def draw(self):
+        self.state_machine.draw()
+
     pass
