@@ -26,6 +26,24 @@ def space_down(e):
 def space_up(e):
     pass
 
+# 대기 클래스
+class Wait:
+    @staticmethod
+    def enter(player, e):
+        pass
+
+    @staticmethod
+    def exit(player, e):
+        pass
+
+    @staticmethod
+    def do(player, e):
+        pass
+
+    @staticmethod
+    def draw(player, e):
+        pass
+
 # 이동 클래스
 class Run:
     @staticmethod
