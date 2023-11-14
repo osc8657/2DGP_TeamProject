@@ -20,4 +20,6 @@ class StateMachine:
 
 # 상대방 클래스
 class Opponent:
+
+
     pass
