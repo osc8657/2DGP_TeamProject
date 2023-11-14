@@ -4,23 +4,23 @@ import game_stadium
 
 # 우측 키 이벤트
 def right_down(e):
-    pass
+    return e[0] == 'INPUT' and e[1].type == SDL_KEYDOWN and e[1].key == SDLK_RIGHT
 def right_up(e):
-    pass
+    return e[0] == 'INPUT' and e[1].type == SDL_KEYUP and e[1].key == SDLK_RIGHT
 
 #좌측 키 이벤트
 def left_down(e):
-    pass
+    return e[0] == 'INPUT' and e[1].type == SDL_KEYDOWN and e[1].key == SDLK_LEFT
 def left_up(e):
-    pass
+    return e[0] == 'INPUT' and e[1].type == SDL_KEYUP and e[1].key == SDLK_LEFT
 
 # 점프 이벤트
-def alt_down(e):
-    pass
+def x_down(e):
+    return e[0] == 'INPUT' and e[1].type == SDL_KEYDOWN and e[1].key == SDLK_x
 
 # 스윙 이벤트
-def ctrl_down(e):
-    pass
+def z_down(e):
+    return e[0] == 'INPUT' and e[1].type == SDL_KEYDOWN and e[1].key == SDLK_z
 
 # 점프 중 이벤트 발생 없을 시
 def jump_over(e):
@@ -42,6 +42,9 @@ def JS_motion_over(e):
 class Wait:
     @staticmethod
     def enter(player, e):
+        player.action = 0 # 시트의 대기모션의 buttom위치
+        player.dir = 0
+        player.frame = 0
         pass
 
     @staticmethod
@@ -50,10 +53,12 @@ class Wait:
 
     @staticmethod
     def do(player, e):
+        player.frame = (player.frame + 1) % 8
         pass
 
     @staticmethod
     def draw(player, e):
+        player.image.clip_draw()
         pass
 
 # 이동 클래스
@@ -74,31 +79,95 @@ class Run:
     @staticmethod
     def do(player):
         # 이동에 따른 프레임 추가
-        # player.frame = (boy.frame + 1) % 8 (애니메이션 프레임)
-        # player.x += player.dir * 5 (dir : 플레이어가 향하는 방향 1,-1)
+        player.frame = (player.frame + 1) % 8 #(애니메이션 프레임)
+        player.x += player.dir * 5 #(dir : 플레이어가 향하는 방향 1,-1)
         pass
 
     @staticmethod
     def draw(player):
-        #player.image.clip_draw()
+        player.image.clip_draw()
         pass
 
     pass
 
 # 스윙 클래스
 class Swing:
+    @staticmethod
+    def enter(player, e):
+        pass
+
+    @staticmethod
+    def exit(player, e):
+        pass
+
+    @staticmethod
+    def do(player):
+        pass
+
+    @staticmethod
+    def draw(player):
+        pass
+
     pass
 
 # 점프 클래스
 class Jump:
+    @staticmethod
+    def enter(player, e):
+        pass
+
+    @staticmethod
+    def exit(player, e):
+        pass
+
+    @staticmethod
+    def do(player):
+        pass
+
+    @staticmethod
+    def draw(player):
+        pass
+
     pass
 
 # 착지 클래스
 class Landing:
+    @staticmethod
+    def enter(player, e):
+        pass
+
+    @staticmethod
+    def exit(player, e):
+        pass
+
+    @staticmethod
+    def do(player):
+        pass
+
+    @staticmethod
+    def draw(player):
+        pass
+
     pass
 
 # 점프 스매시 클래스
 class Jump_smash:
+    @staticmethod
+    def enter(player, e):
+        pass
+
+    @staticmethod
+    def exit(player, e):
+        pass
+
+    @staticmethod
+    def do(player):
+        pass
+
+    @staticmethod
+    def draw(player):
+        pass
+
     pass
 
 # 상태변환 클래스
@@ -108,9 +177,9 @@ class StateMachine:
         self.player = player
         self.cur_state = Wait
         self.transition = {
-            Wait : {right_down: Run, left_down: Run, right_up: Run, left_up: Run, alt_down: Jump, ctrl_down: Swing},
-            Run : {right_down: Wait, right_up: Wait, left_down: Wait, left_up: Wait, alt_down: Jump, ctrl_down: Swing},
-            Jump : {ctrl_down: Jump_smash, jump_over: Landing},
+            Wait : {right_down: Run, left_down: Run, right_up: Run, left_up: Run, x_down: Jump, z_down: Swing},
+            Run : {right_down: Wait, right_up: Wait, left_down: Wait, left_up: Wait, x_down: Jump, z_down: Swing},
+            Jump : {z_down: Jump_smash, jump_over: Landing},
             Landing : {L_motion_over: Wait},
             Swing : {S_motion_over: Wait},
             Jump_smash : {JS_motion_over: Landing}
