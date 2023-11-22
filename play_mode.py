@@ -10,6 +10,7 @@ from cock import Cock
 from opponent import Opponent
 from player import Player
 from net import Net
+from ground import Ground
 # ...
 
 # 조작
@@ -27,6 +28,7 @@ def handle_events():
 # 월드 생성
 def init():
     global stadium  # 경기장
+    global ground
     global net      # 네트
     global player   # 플레이어
     global opponent # 상대방
@@ -36,14 +38,27 @@ def init():
     stadium = Stadium()
     game_world.add_object(stadium, 0)
 
-    #net = Net()
-    #game_world.add_object(net, 1)
+    ground = Ground()
+    game_world.add_object(ground, 1)
+    game_world.add_collision_pair('cock:ground', None, ground)
+
+    net = Net()
+    game_world.add_object(net, 1)
+    game_world.add_collision_pair('cock:net', None, net)
 
     player = Player()
     game_world.add_object(player, 2)
 
+    global cock
+    cock = Cock()
+    game_world.add_object(cock, 3)
+    game_world.add_collision_pair('cock:ground', cock, None)
+    game_world.add_collision_pair('cock:net', cock, None)
+
     #opponent = Opponent()
     #game_world.add_object(opponent, 2)
+
+
 
 
     pass
@@ -55,6 +70,7 @@ def finish():
 # 월드 업데이트
 def update():
     game_world.update()
+    game_world.handle_collisions()
     pass
 
 # 월드 그리기
