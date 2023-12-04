@@ -4,27 +4,30 @@ from pico2d import *
 import game_framework
 import game_world
 import play_mode
-import game_framework
+import next_mode
+
+import player
+
+PIXEL_PER_METER = (10.0 / 0.25)  # 10 pixel 33 cm
 
 # 롱--------------------------------------------------
-PIXEL_PER_METER = (10.0 / 0.3)  # 10 pixel 30 cm
-LX_RUN_SPEED_KMPH = 70.0  # Km / Hour
+LX_RUN_SPEED_KMPH = 60.0  # Km / Hour
 LX_RUN_SPEED_MPM = (LX_RUN_SPEED_KMPH * 1000.0 / 60.0)
 LX_RUN_SPEED_MPS = (LX_RUN_SPEED_MPM / 60.0)
 LX_RUN_SPEED_PPS = (LX_RUN_SPEED_MPS * PIXEL_PER_METER)
 
-LY_RUN_SPEED_KMPH = 100.0  # Km / Hour
+LY_RUN_SPEED_KMPH = 80.0  # Km / Hour
 LY_RUN_SPEED_MPM = (LY_RUN_SPEED_KMPH * 1000.0 / 60.0)
 LY_RUN_SPEED_MPS = (LY_RUN_SPEED_MPM / 60.0)
 LY_RUN_SPEED_PPS = (LY_RUN_SPEED_MPS * PIXEL_PER_METER)
 
 # 숏--------------------------------------------
-SX_RUN_SPEED_KMPH = 55.0  # Km / Hour
+SX_RUN_SPEED_KMPH = 60.0  # Km / Hour
 SX_RUN_SPEED_MPM = (SX_RUN_SPEED_KMPH * 1000.0 / 60.0)
 SX_RUN_SPEED_MPS = (SX_RUN_SPEED_MPM / 60.0)
 SX_RUN_SPEED_PPS = (SX_RUN_SPEED_MPS * PIXEL_PER_METER)
 
-SY_RUN_SPEED_KMPH = 65.0  # Km / Hour
+SY_RUN_SPEED_KMPH = 60.0  # Km / Hour
 SY_RUN_SPEED_MPM = (SY_RUN_SPEED_KMPH * 1000.0 / 60.0)
 SY_RUN_SPEED_MPS = (SY_RUN_SPEED_MPM / 60.0)
 SY_RUN_SPEED_PPS = (SY_RUN_SPEED_MPS * PIXEL_PER_METER)
@@ -40,6 +43,17 @@ SMY_RUN_SPEED_MPM = (SMY_RUN_SPEED_KMPH * 1000.0 / 60.0)
 SMY_RUN_SPEED_MPS = (SMY_RUN_SPEED_MPM / 60.0)
 SMY_RUN_SPEED_PPS = (SMY_RUN_SPEED_MPS * PIXEL_PER_METER)
 
+# 점프 스매시----------------------------------------------
+JSMX_RUN_SPEED_KMPH = 280.0  # Km / Hour
+JSMX_RUN_SPEED_MPM = (JSMX_RUN_SPEED_KMPH * 1000.0 / 60.0)
+JSMX_RUN_SPEED_MPS = (JSMX_RUN_SPEED_MPM / 60.0)
+JSMX_RUN_SPEED_PPS = (JSMX_RUN_SPEED_MPS * PIXEL_PER_METER)
+
+JSMY_RUN_SPEED_KMPH = -60.0  # Km / Hour
+JSMY_RUN_SPEED_MPM = (JSMY_RUN_SPEED_KMPH * 1000.0 / 60.0)
+JSMY_RUN_SPEED_MPS = (JSMY_RUN_SPEED_MPM / 60.0)
+JSMY_RUN_SPEED_PPS = (JSMY_RUN_SPEED_MPS * PIXEL_PER_METER)
+
 
 TIME_PER_ACTION = 0.5
 ACTION_PER_TIME = 1.0 / TIME_PER_ACTION
@@ -47,69 +61,136 @@ FRAMES_PER_ACTION = 10.0
 
 
 def wait(cock):
-    cock.x, cock.y = play_mode.player.x, play_mode.player.y+80
-
+    cock.dir = 0
+    cock.sx, cock.sy = None, None
+    if play_mode.who_sub == 'player':
+        cock.x, cock.y = play_mode.player.x+25, play_mode.player.y-25
+    else:
+        cock.x, cock.y = play_mode.opponent.x-25, play_mode.opponent.y-25
 
 def long_shot(cock):
     cock.play_time = time.time() - cock.current_time
-    if cock.sx > 250:
-        cock.x += (LX_RUN_SPEED_PPS - cock.sx / 2) * game_framework.frame_time
+
+    if cock.dir == 1:
+        if cock.sx > 250:
+            cock.x += (LX_RUN_SPEED_PPS - cock.sx / 2) * game_framework.frame_time
+        else:
+            cock.x += (LX_RUN_SPEED_PPS) * game_framework.frame_time
     else:
-        cock.x += (LX_RUN_SPEED_PPS) * game_framework.frame_time
+        if cock.sx < 950:
+            cock.x -= (LX_RUN_SPEED_PPS - (cock.sx - 400) / 2) * game_framework.frame_time
+        else:
+            cock.x -= (LX_RUN_SPEED_PPS) * game_framework.frame_time
+
     cock.y += LY_RUN_SPEED_PPS * game_framework.frame_time + 1 / 2 * cock.gravity * (cock.play_time) ** 2
     cock.y = clamp(60, cock.y, 600)
 
 
 def short_shot(cock):
     cock.play_time = time.time() - cock.current_time
-    if cock.sx > 250:
-        cock.x += (SX_RUN_SPEED_PPS - cock.sx/2) * game_framework.frame_time
-        cock.y += (SY_RUN_SPEED_PPS - cock.sy/1.5) * game_framework.frame_time + 1 / 2 * cock.gravity * (cock.play_time) ** 2
+    if cock.dir == 1:
+        if cock.sx > 250:
+            cock.x += (SX_RUN_SPEED_PPS - cock.sx / 2) * game_framework.frame_time
+            cock.y += (SY_RUN_SPEED_PPS) * game_framework.frame_time + 1 / 2 * cock.gravity * (cock.play_time) ** 2
+        else:
+            cock.x += (SX_RUN_SPEED_PPS) * game_framework.frame_time
+            cock.y += SY_RUN_SPEED_PPS * game_framework.frame_time + 1 / 2 * cock.gravity * (cock.play_time) ** 2
     else:
-        cock.x += (SX_RUN_SPEED_PPS) * game_framework.frame_time
-        cock.y += SY_RUN_SPEED_PPS * game_framework.frame_time + 1 / 2 * cock.gravity * (cock.play_time) ** 2
+        if cock.sx < 950:
+            cock.x -= (SX_RUN_SPEED_PPS - (cock.sx - 400) / 2) * game_framework.frame_time
+            cock.y += (SY_RUN_SPEED_PPS) * game_framework.frame_time + 1 / 2 * cock.gravity * (cock.play_time) ** 2
+        else:
+            cock.x -= (SX_RUN_SPEED_PPS) * game_framework.frame_time
+            cock.y += SY_RUN_SPEED_PPS * game_framework.frame_time + 1 / 2 * cock.gravity * (cock.play_time) ** 2
+
     cock.y = clamp(60, cock.y, 1200)
 
 
 def smash(cock):
     cock.play_time = time.time() - cock.current_time
-    if cock.sx > 250:
-        cock.x += (SMX_RUN_SPEED_PPS) * game_framework.frame_time
-        cock.y += (SMY_RUN_SPEED_PPS * game_framework.frame_time - cock.sx/200) + 1 / 2 * cock.gravity * (cock.play_time) ** 2
+
+    if cock.dir == 1:
+        if cock.sx > 250:
+            cock.x += (SMX_RUN_SPEED_PPS) * game_framework.frame_time
+            cock.y += (SMY_RUN_SPEED_PPS * game_framework.frame_time ) + 1 / 2 * cock.gravity * (cock.play_time) ** 2
+        else:
+            cock.x += SMX_RUN_SPEED_PPS * game_framework.frame_time
+            cock.y += SMY_RUN_SPEED_PPS * game_framework.frame_time + 1 / 2 * cock.gravity * (cock.play_time) ** 2
     else:
-        cock.x += SMX_RUN_SPEED_PPS * game_framework.frame_time
-        cock.y += SMY_RUN_SPEED_PPS * game_framework.frame_time + 1 / 2 * cock.gravity * (cock.play_time) ** 2
+        if cock.sx < 950:
+            cock.x -= (SMX_RUN_SPEED_PPS) * game_framework.frame_time
+            cock.y += (SMY_RUN_SPEED_PPS * game_framework.frame_time - cock.sx / 200) + 1 / 2 * cock.gravity * (cock.play_time) ** 2
+        else:
+            cock.x -= SMX_RUN_SPEED_PPS * game_framework.frame_time
+            cock.y += SMY_RUN_SPEED_PPS * game_framework.frame_time + 1 / 2 * cock.gravity * (cock.play_time) ** 2
     pass
 
 def jump_smash(cock):
     cock.play_time = time.time() - cock.current_time
-    if cock.sx > 250:
-        cock.x += (SMX_RUN_SPEED_PPS) * game_framework.frame_time
-        cock.y += (SMY_RUN_SPEED_PPS * game_framework.frame_time - cock.sx / 200) + 1 / 2 * cock.gravity * (cock.play_time) ** 2
+
+    if cock.dir == 1:
+        if cock.sx > 250:
+            cock.x += (JSMX_RUN_SPEED_PPS) * game_framework.frame_time
+            cock.y += (JSMY_RUN_SPEED_PPS * game_framework.frame_time - cock.sx / 200) + 1 / 2 * cock.gravity * (cock.play_time) ** 2
+        else:
+            cock.x += JSMX_RUN_SPEED_PPS * game_framework.frame_time
+            cock.y += JSMY_RUN_SPEED_PPS * game_framework.frame_time + 1 / 2 * cock.gravity * (cock.play_time) ** 2
     else:
-        cock.x += SMX_RUN_SPEED_PPS * game_framework.frame_time
-        cock.y += SMY_RUN_SPEED_PPS * game_framework.frame_time + 1 / 2 * cock.gravity * (cock.play_time) ** 2
+        if cock.sx < 950:
+            cock.x -= (JSMX_RUN_SPEED_PPS) * game_framework.frame_time
+            cock.y += (JSMY_RUN_SPEED_PPS * game_framework.frame_time - cock.sx / 200) + 1 / 2 * cock.gravity * (cock.play_time) ** 2
+        else:
+            cock.x -= JSMX_RUN_SPEED_PPS * game_framework.frame_time
+            cock.y += JSMY_RUN_SPEED_PPS * game_framework.frame_time + 1 / 2 * cock.gravity * (cock.play_time) ** 2
     pass
 
 def game_over(cock, case):
-    print(case)
-
-    if case == 'COURT OUT!':
+    if case == 'COURT_OUT!':
         if cock.x > 610 and cock.x < 1100: #상대 코트 내부일때
-            print('1:0')
+            play_mode.player_score += 1
+            play_mode.who_sub = 'player'
         elif cock.x < 100: # 내 코트 뒤편으로 나갔을 떄
-            print('1:0')
+            play_mode.player_score += 1
+            play_mode.who_sub = 'player'
         else:
-            print('0:1')
+            play_mode.opponent_score += 1
+            play_mode.who_sub = 'opponent'
 
-    if case == 'NET OUT!':
-        if cock.x < 595:
-            print('0:1')
+    if case == 'NET_OUT!':
+        if cock.x > 595:
+            play_mode.player_score += 1
+            play_mode.who_sub = 'player'
         else:
-            print('1:0')
+            play_mode.opponent_score += 1
+            play_mode.who_sub = 'opponent'
 
-    game_world.remove_object(cock)
-    pass
+    print('[',case,']',play_mode.player_score,':',play_mode.opponent_score)
+
+
+
+    if play_mode.player_score == play_mode.opponent_score and play_mode.player_score > 19:
+        cock.game_state = 'DEUCE'
+
+
+    if cock.game_state == 'DEUCE':
+        if play_mode.player_score == 29 or play_mode.opponent_score == 29:
+            if play_mode.player_score == 30:
+                play_mode.who_win = 'PLAYER WIN!'
+            elif play_mode.opponent_score == 30:
+                play_mode.who_win = 'OPPONENT WIN!'
+
+        if play_mode.player_score > play_mode.opponent_score + 1:
+            play_mode.who_win = 'PLAYER WIN!'
+        elif play_mode.opponent_score > play_mode.player_score + 1:
+            play_mode.who_win = 'OPPPONENT WIN!'
+    else:
+        if play_mode.player_score == 21:
+            play_mode.who_win = 'PLAYER WIN!'
+        elif play_mode.opponent_score == 21:
+            play_mode.who_win = 'OPPONENT WIN!'
+
+    print(cock.game_state, play_mode.who_win)
+    game_framework.push_mode(next_mode)
 
 
 class Cock:
@@ -120,11 +201,14 @@ class Cock:
             Cock.image = load_image('cock.png')
         self.x, self.y = play_mode.player.x, play_mode.player.y
         self.state = 'NONE'
+        self.dir = 0
 
         self.gravity = -9.8
         self.current_time = 0
         self.play_time = 0
         self.sx, self.sy = None, None
+
+        self.game_state = 'NONE'
 
     def draw(self):
         self.image.draw(self.x, self.y)
@@ -144,6 +228,8 @@ class Cock:
             case 'JUMP_SMASH':
                 jump_smash(self)
 
+        self.x = clamp(10, self.x, 1100)
+
     def get_bb(self):
         return self.x-10, self.y-10, self.x+10, self.y+10
         pass
@@ -151,8 +237,8 @@ class Cock:
     def handle_collision(self, group, other):
         match group:
             case 'cock:ground':
-                game_over(self, 'COURT OUT!')
+                game_over(self, 'COURT_OUT!')
                 pass
             case 'cock:net':
-                game_over(self, 'NET OUT!')
+                game_over(self, 'NET_OUT!')
                 pass

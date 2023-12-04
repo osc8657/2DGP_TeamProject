@@ -15,7 +15,7 @@ class Net:
 
 
     def get_bb(self):
-        return 590, 60, 600, 140
+        return 590, 60, 610, 150
 
     def handle_collision(self, group, other):
         match group:

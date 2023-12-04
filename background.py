@@ -3,7 +3,7 @@ from pico2d import *
 class Stadium:
 
     def __init__(self):
-        self.image = load_image('stadium.png')
+        self.image = load_image('background.png')
 
     def update(self):
         pass

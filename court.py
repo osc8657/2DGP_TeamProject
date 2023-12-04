@@ -13,7 +13,7 @@ class Ground:
         draw_rectangle(*self.get_bb())
 
     def get_bb(self):
-        return 0, 60, 1200, 60
+        return 0, 0, 1200, 60
 
     def handle_collision(self, group, other):
         match group:

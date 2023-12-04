@@ -1,5 +1,4 @@
-
-
+from pico2d import *
 # 게임 월드의 표현
 # 레이어로 다루도록 수정해야함
 objects = [[] for _ in range(4)]
