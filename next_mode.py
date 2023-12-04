@@ -81,7 +81,7 @@ def handle_events():
     events = get_events()
 
     if play_mode.who_win == None:
-        if state == 'can':
+        if state == 'cannot':
             game_framework.pop_mode()
     elif play_mode.who_win != None:
         for event in events:

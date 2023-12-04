@@ -216,19 +216,20 @@ class Cock:
 
 
     def update(self):
-        match self.state:
-            case 'NONE':
-                wait(self)
-            case 'LONG':
-                long_shot(self)
-            case 'SHORT':
-                short_shot(self)
-            case 'SMASH':
-                smash(self)
-            case 'JUMP_SMASH':
-                jump_smash(self)
+        # match self.state:
+        #     case 'NONE':
+        #         wait(self)
+        #     case 'LONG':
+        #         long_shot(self)
+        #     case 'SHORT':
+        #         short_shot(self)
+        #     case 'SMASH':
+        #         smash(self)
+        #     case 'JUMP_SMASH':
+        #         jump_smash(self)
 
         self.x = clamp(10, self.x, 1100)
+        pass
 
     def get_bb(self):
         return self.x-10, self.y-10, self.x+10, self.y+10
