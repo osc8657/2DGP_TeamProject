@@ -9,4 +9,4 @@ class Stadium:
         pass
 
     def draw(self):
-        self.image.draw(600, 300)
+        self.image.draw(600, 310)

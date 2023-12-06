@@ -3,13 +3,12 @@ main_file = 'main.py'# fill here
 
 # 데이타 파일들을 지정하세요.
 data_files = [
-    # fill here
-    'animation_sheet.png', 'cock.png',
-    'ground.png', 'how_to_play.png', 'net.png', 'stadium.png', 'title.png'
+    'background.png', 'cock.png', 'ENCR10B.TTF', 'ground.png', 'title.png',
+    'how_to_play.png', 'net.png', 'player_animation_sheet.png', 'score_board.png'
 ]
 
 # 데이타가 들어있는 폴더들을 지정하세요.
 data_folders = [
-    # fill here
+    'opponent', 'sound'
 ]
 

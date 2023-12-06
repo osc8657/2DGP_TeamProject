@@ -4,10 +4,10 @@ import game_world
 import play_mode
 import time
 
-HIT_AREA_X1 = 100
-HIT_AREA_X2 = 100
-HIT_AREA_Y1 = 100
-HIT_AREA_Y2 = 100
+HIT_AREA_X1 = 50
+HIT_AREA_X2 = 120
+HIT_AREA_Y1 = 120
+HIT_AREA_Y2 = 120
 
 # 우측 키 이벤트
 def right_down(e):
@@ -59,17 +59,19 @@ JUMP_SPEED_MPS = (JUMP_SPEED_MPM / 60.0)
 JUMP_SPEED_PPS = (JUMP_SPEED_MPS * PIXEL_PER_METER)
 
 # Player Action Speed
+TIME_PER_SWING = 0.2
 TIME_PER_ACTION = 0.5
+SWING_PER_TIME = 1.0 / TIME_PER_SWING
 ACTION_PER_TIME = 1.0 / TIME_PER_ACTION
 FRAMES_PER_ACTION = 8
 
 
 def can_hit(player):
     if play_mode.cock.x < 600:
-        if play_mode.cock.x > player.x - HIT_AREA_X1:
-            if play_mode.cock.x < player.x + HIT_AREA_X2:
-                if play_mode.cock.y > player.y - HIT_AREA_Y1:
-                    if play_mode.cock.y < player.y + HIT_AREA_Y2:
+        if play_mode.cock.x - 10 > player.x - HIT_AREA_X1:
+            if play_mode.cock.x - 10 < player.x + HIT_AREA_X2:
+                if play_mode.cock.y - 10 > player.y - HIT_AREA_Y1:
+                    if play_mode.cock.y - 10 < player.y + HIT_AREA_Y2:
                         return True
     return False
 
@@ -97,7 +99,7 @@ class Wait:
 
     @staticmethod
     def draw(player):
-        player.image.clip_draw(int(player.frame) * 200, player.action * 200, 200, 200, player.x, player.y, 250, 250)
+        player.image.clip_draw(int(player.frame) * 200, player.action * 200, 200, 200, player.x, player.y, 300, 300)
         pass
 
 # 이동 클래스
@@ -121,12 +123,11 @@ class Run:
         # 이동에 따른 프레임 추가
         player.frame = (player.frame + FRAMES_PER_ACTION * ACTION_PER_TIME * game_framework.frame_time) % 8 #(애니메이션 프레임)
         player.x += player.dir * RUN_SPEED_PPS * game_framework.frame_time #(dir : 플레이어가 향하는 방향 1,-1)
-        player.x = clamp(25, player.x, 1600-25) # 캔버스 좌, 우 한계선
         pass
 
     @staticmethod
     def draw(player):
-        player.image.clip_draw(int(player.frame) * 200, player.action * 200, 200, 200, player.x, player.y, 250, 250)
+        player.image.clip_draw(int(player.frame) * 200, player.action * 200, 200, 200, player.x, player.y, 300, 300)
         pass
 
     pass
@@ -138,7 +139,7 @@ class Swing_short:
         if play_mode.who_sub == 'player':
             player.action = 6
         else:
-            if play_mode.cock.y < 120:
+            if play_mode.cock.y < 200:
                 player.action = 0 # 언더 스윙
             else:
                 player.action = 1 # 하이 스윙
@@ -149,6 +150,9 @@ class Swing_short:
             play_mode.cock.current_time = time.time()
             play_mode.cock.sx, play_mode.cock.sy = player.x, player.y
             play_mode.cock.dir = 1
+            player.serve_sound.play()
+        else:
+            player.miss_sound.play()
         pass
 
     @staticmethod
@@ -163,6 +167,8 @@ class Swing_short:
             player.frame = (player.frame + FRAMES_PER_ACTION * ACTION_PER_TIME * game_framework.frame_time) % 5
         else:
             player.frame = (player.frame + FRAMES_PER_ACTION * ACTION_PER_TIME * game_framework.frame_time) % 8
+
+
         if can_hit(player):
             play_mode.cock.state = 'SHORT'
 
@@ -177,7 +183,7 @@ class Swing_short:
 
     @staticmethod
     def draw(player):
-        player.image.clip_draw(int(player.frame) * 200, player.action * 200, 200, 200, player.x, player.y, 250, 250)
+        player.image.clip_draw(int(player.frame) * 200, player.action * 200, 200, 200, player.x, player.y, 300, 300)
         pass
 
     pass
@@ -189,7 +195,7 @@ class Swing_long:
         if play_mode.who_sub == 'player':
             player.action = 6
         else:
-            if play_mode.cock.y < 90:
+            if play_mode.cock.y < 200:
                 player.action = 0 # 언더 스윙
             else:
                 player.action = 1 # 하이 스윙
@@ -197,8 +203,14 @@ class Swing_long:
 
         if can_hit(player):
             play_mode.cock.current_time = time.time()
-            play_mode.cock.sx= player.x
+            play_mode.cock.sx, play_mode.cock.sy = player.x, player.y
             play_mode.cock.dir = 1
+            if play_mode.who_sub == 'player':
+                player.serve_sound.play()
+            else:
+                player.clear_sound.play()
+        else:
+            player.miss_sound.play()
 
         player.motion_time = time.time()
         pass
@@ -214,7 +226,8 @@ class Swing_long:
         if play_mode.who_sub == 'player':
             player.frame = (player.frame + FRAMES_PER_ACTION * ACTION_PER_TIME * game_framework.frame_time) % 5
         else:
-            player.frame = (player.frame + FRAMES_PER_ACTION * ACTION_PER_TIME * game_framework.frame_time) % 8
+            player.frame = (player.frame + FRAMES_PER_ACTION * SWING_PER_TIME * game_framework.frame_time) % 8
+
 
         if can_hit(player):
             play_mode.cock.state = 'LONG'
@@ -223,11 +236,11 @@ class Swing_long:
             if time.time() - player.motion_time > 0.3:
                 player.state_machine.handle_event(('TIME_OUT', 0))
         else:
-            if time.time() - player.motion_time > 0.5:
+            if time.time() - player.motion_time > 0.2:
                 player.state_machine.handle_event(('TIME_OUT', 0))
     @staticmethod
     def draw(player):
-        player.image.clip_draw(int(player.frame) * 200, player.action * 200, 200, 200, player.x, player.y, 250, 250)
+        player.image.clip_draw(int(player.frame) * 200, player.action * 200, 200, 200, player.x, player.y, 300, 300)
         pass
 
     pass
@@ -244,6 +257,9 @@ class Smash:
             play_mode.cock.current_time = time.time()
             play_mode.cock.sx, play_mode.cock.sy = player.x, player.y
             play_mode.cock.dir = 1
+            player.smash_sound.play()
+        else:
+            player.miss_sound.play()
         pass
 
     @staticmethod
@@ -252,18 +268,18 @@ class Smash:
 
     @staticmethod
     def do(player):
-        player.frame = (player.frame + FRAMES_PER_ACTION * ACTION_PER_TIME * game_framework.frame_time) % 8
+        player.frame = (player.frame + FRAMES_PER_ACTION * SWING_PER_TIME * game_framework.frame_time) % 8
 
         if can_hit(player):
             play_mode.cock.state = 'SMASH'
 
-        if time.time() - player.motion_time > 0.4:
+        if time.time() - player.motion_time > 0.2:
             player.state_machine.handle_event(('TIME_OUT', 0))
         pass
 
     @staticmethod
     def draw(player):
-        player.image.clip_draw(int(player.frame) * 200, player.action * 200, 200, 200, player.x, player.y, 250, 250)
+        player.image.clip_draw(int(player.frame) * 200, player.action * 200, 200, 200, player.x, player.y, 300, 300)
         pass
 
 # 점프 클래스
@@ -290,7 +306,7 @@ class Jump:
 
     @staticmethod
     def draw(player):
-        player.image.clip_draw(int(player.frame) * 200, player.action * 200, 200, 200, player.x, player.y, 250, 250)
+        player.image.clip_draw(int(player.frame) * 200, player.action * 200, 200, 200, player.x, player.y, 300, 300)
         pass
 
 # 착지 클래스
@@ -316,7 +332,7 @@ class Landing:
 
     @staticmethod
     def draw(player):
-        player.image.clip_draw(int(player.frame) * 200, player.action * 200, 200, 200, player.x, player.y, 250, 250)
+        player.image.clip_draw(int(player.frame) * 200, player.action * 200, 200, 200, player.x, player.y, 300, 300)
         pass
 
     pass
@@ -334,6 +350,9 @@ class Jump_smash:
             play_mode.cock.current_time = time.time()
             play_mode.cock.sx, play_mode.cock.sy = player.x, player.y
             play_mode.cock.dir = 1
+            player.smash_sound.play()
+        else:
+            player.miss_sound.play()
         pass
 
     @staticmethod
@@ -342,16 +361,16 @@ class Jump_smash:
 
     @staticmethod
     def do(player):
-        player.frame = (player.frame + FRAMES_PER_ACTION * ACTION_PER_TIME * game_framework.frame_time) % 5
+        player.frame = (player.frame + FRAMES_PER_ACTION * SWING_PER_TIME * game_framework.frame_time) % 5
         if can_hit(player):
             play_mode.cock.state = 'JUMP_SMASH'
 
-        if time.time() - player.motion_time > 0.3:
+        if time.time() - player.motion_time > 0.2:
             player.state_machine.handle_event(('TIME_OUT', 0))
 
     @staticmethod
     def draw(player):
-        player.image.clip_draw(int(player.frame) * 200, player.action * 200, 200, 200, player.x, player.y, 250, 250)
+        player.image.clip_draw(int(player.frame) * 200, player.action * 200, 200, 200, player.x, player.y, 300, 300)
 
         pass
 
@@ -360,7 +379,6 @@ class Jump_smash:
 class Serve:
     @staticmethod
     def enter(player, e):
-        player.action = 6
         player.dir = 0
         player.frame = 0
         pass
@@ -371,12 +389,13 @@ class Serve:
 
     @staticmethod
     def do(player):
+        player.action = 6
         player.frame = (player.frame + FRAMES_PER_ACTION * ACTION_PER_TIME * game_framework.frame_time) % 1
         pass
 
     @staticmethod
     def draw(player):
-        player.image.clip_draw(int(player.frame) * 200, player.action * 200, 200, 200, player.x, player.y, 250, 250)
+        player.image.clip_draw(int(player.frame) * 200, player.action * 200, 200, 200, player.x, player.y, 300, 300)
         pass
 
 # 상태변환 클래스
@@ -420,7 +439,7 @@ class StateMachine:
 class Player:
 
     def __init__(self):
-        self.x, self.y = 400, 150# 대충 임의의 값 넣음 수정필요
+        self.x, self.y = 350, 180# 대충 임의의 값 넣음 수정필요
         self.frame = 0
         self.action = 0 # 임의의 값, 대기 액션으로 값 넣어야댐
         self.face_dir = 1
@@ -431,16 +450,24 @@ class Player:
         self.motion_time = 0
         self.jump_time = 0
 
+        self.clear_sound = load_wav('./sound/clear_sound.wav')
+        self.clear_sound.set_volume(32)
+        self.miss_sound = load_wav('./sound/miss_sound.wav')
+        self.miss_sound.set_volume(32)
+        self.serve_sound = load_wav('./sound/serve_sound.wav')
+        self.serve_sound.set_volume(32)
+        self.smash_sound = load_wav('./sound/smash_sound.wav')
+        self.smash_sound.set_volume(32)
+
     def update(self):
         self.state_machine.update()
-        self.x = clamp(100, self.x, 550)
+        # self.x = clamp(100, self.x, 550)
 
     def handle_event(self, event):
         self.state_machine.handle_event(('INPUT', event))
 
     def draw(self):
         self.state_machine.draw()
-        draw_rectangle(self.x - HIT_AREA_X1, self.y - HIT_AREA_Y1, self.x + HIT_AREA_X2, self.y + HIT_AREA_Y2)
 
     def get_bb(self):
         return self.x - 20, self.y - 50, self.x + 20, self.y + 50

@@ -10,7 +10,6 @@ class Ground:
 
     def draw(self):
         self.image.draw(600, 30)
-        draw_rectangle(*self.get_bb())
 
     def get_bb(self):
         return 0, 0, 1200, 60

@@ -10,12 +10,11 @@ class Net:
         pass
 
     def draw(self):
-        self.image.draw(600,40)
-        draw_rectangle(*self.get_bb())
+        self.image.draw(600,80)
 
 
     def get_bb(self):
-        return 590, 60, 610, 150
+        return 591, 60, 606, 187
 
     def handle_collision(self, group, other):
         match group:

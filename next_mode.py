@@ -10,9 +10,9 @@ import game_world
 import time
 
 def init():
-    play_mode.player.x, play_mode.player.y = 400, 150
+    play_mode.player.x, play_mode.player.y = 350, 180
 
-    play_mode.opponent.x, play_mode.opponent.y = 850, 150
+    play_mode.opponent.x, play_mode.opponent.y = 850, 180
 
     if play_mode.who_sub == 'player':
         play_mode.cock.x, play_mode.cock.y = play_mode.player.x+25, play_mode.player.y-25
@@ -81,7 +81,7 @@ def handle_events():
     events = get_events()
 
     if play_mode.who_win == None:
-        if state == 'cannot':
+        if state == 'can':
             game_framework.pop_mode()
     elif play_mode.who_win != None:
         for event in events:
